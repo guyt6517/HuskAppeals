@@ -1,11 +1,8 @@
 from flask import Flask, request, jsonify, render_template_string
-import requests
 
 app = Flask(__name__)
 
-DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
-
-# In-memory appeals storage for admin viewing (optional)
+# Store appeals in memory (or you can hook up a database)
 appeals = []
 
 @app.route('/api/appeal', methods=['POST'])
@@ -17,22 +14,14 @@ def receive_appeal():
     if not user_id or not appeal_text:
         return jsonify({"error": "Missing userId or appealText"}), 400
 
-    # Send to Discord webhook
-    content = f"**New Appeal Received**\nUser ID: {user_id}\nAppeal:\n{appeal_text}"
-    discord_data = {"content": content}
-    r = requests.post(DISCORD_WEBHOOK_URL, json=discord_data)
-
-    if r.status_code != 204:
-        return jsonify({"error": "Failed to send to Discord"}), 500
-
-    # Store appeal in memory (optional)
+    # Store appeal
     appeals.append({"userId": user_id, "appealText": appeal_text})
 
     return jsonify({"message": "Appeal submitted successfully"}), 200
 
 @app.route('/admin')
 def admin():
-    # Very basic admin page showing appeals in memory
+    # Simple admin page listing appeals
     html = """
     <!DOCTYPE html>
     <html>
